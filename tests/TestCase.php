@@ -8,7 +8,7 @@ class TestCase extends \Orchestra\Testbench\TestCase
      * Load package service provider
      *
      * @param \Illuminate\Foundation\Application $app
-     * @return Billow\PayfastServiceProvider\PayfastServiceProvider
+     * @return NeoLikotsi\PayfastServiceProvider\PayfastServiceProvider
      */
     public function getPackageProviders($app)
     {

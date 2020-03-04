@@ -10,7 +10,7 @@ class PayfastServiceProvider extends ServiceProvider
 
     public function register()
     {
-        $this->app->bind('Billow\Contracts\PaymentProcessor', 'Billow\Payfast');
+        $this->app->bind('NeoLikotsi\Contracts\PaymentProcessor', 'NeoLikotsi\Payfast');
     }
 
     public function boot()
