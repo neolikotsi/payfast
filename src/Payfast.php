@@ -1,11 +1,11 @@
 <?php
 
-namespace Billow;
+namespace NeoLikotsi;
 
 use Exception;
 use Billow\Utilities\Money;
 use Illuminate\Http\Request;
-use Billow\Contracts\PaymentProcessor;
+use NeoLikotsi\Contracts\PaymentProcessor;
 
 class Payfast implements PaymentProcessor
 {

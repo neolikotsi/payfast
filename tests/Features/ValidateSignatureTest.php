@@ -1,10 +1,10 @@
 <?php
 
 
-namespace Billow\Payfast\Test\Features;
+namespace NeoLikotsi\Payfast\Test\Features;
 
-use Billow\Payfast;
-use Billow\Payfast\Test\TestCase;
+use NeoLikotsi\Payfast;
+use NeoLikotsi\Payfast\Test\TestCase;
 
 class ValidateSignatureTest extends TestCase
 {

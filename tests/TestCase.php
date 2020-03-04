@@ -1,6 +1,6 @@
 <?php
 
-namespace Billow\Payfast\Test;
+namespace NeoLikotsi\Payfast\Test;
 
 class TestCase extends \Orchestra\Testbench\TestCase
 {
@@ -12,6 +12,6 @@ class TestCase extends \Orchestra\Testbench\TestCase
      */
     public function getPackageProviders($app)
     {
-        return ['Billow\PayfastServiceProvider'];
+        return ['NeoLikotsi\PayfastServiceProvider'];
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Billow;
+namespace NeoLikotsi;
 
 
 use Illuminate\Support\ServiceProvider;

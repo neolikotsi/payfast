@@ -20,12 +20,12 @@
   },
   "autoload": {
     "psr-4": {
-      "Billow\\": "src/"
+      "NeoLikotsi\\": "src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "Billow\\Payfast\\Test\\": "tests/"
+      "NeoLikotsi\\Payfast\\Test\\": "tests/"
     }
   },
   "require-dev": {
@@ -36,7 +36,7 @@
   "extra": {
     "laravel": {
       "providers": [
-        "Billow\\PayfastServiceProvider"
+        "NeoLikotsi\\PayfastServiceProvider"
       ]
     }
   }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Billow\Contracts;
+namespace NeoLikotsi\Contracts;
 
 
 interface PaymentProcessor
