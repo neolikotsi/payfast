@@ -232,7 +232,7 @@ class Payfast implements PaymentProcessor
 
     public function validateAmount($grossAmount)
     {
-        if($this->amount === $this->newMoney($grossAmount)->convertedAmount()) {
+        if($this->amount === number_format( sprintf( '%.2f', $this->newMoney($grossAmount)->convertedAmount()), 2, '.', '') ) {
             return true;
         }else {
             throw new Exception('The gross amount does not match the order amount');
