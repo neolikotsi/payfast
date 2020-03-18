@@ -232,6 +232,8 @@ class Payfast implements PaymentProcessor
 
     public function validateAmount($grossAmount)
     {
+        info('amount array => ' .  $this->amount);
+        info('gross amount => ' .  number_format( sprintf( '%.2f', $this->newMoney($grossAmount)->convertedAmount()), 2, '.', ''));
         if($this->amount === number_format( sprintf( '%.2f', $this->newMoney($grossAmount)->convertedAmount()), 2, '.', '') ) {
             return true;
         }else {
