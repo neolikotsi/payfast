@@ -22,7 +22,7 @@
   "require": {
     "illuminate/support": "^5.4|^6.0|^7.0",
     "illuminate/http": "^5.4|^6.0|^7.0",
-    "billowapp/show-me-the-money": "dev-support/7.x"
+    "neolikotsi/show-me-the-money": "^0.2.4"
   },
   "autoload": {
     "psr-4": {
