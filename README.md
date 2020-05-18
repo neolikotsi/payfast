@@ -44,6 +44,8 @@ IMPORTANT: You will need to edit App\Http\Middleware\VerifyCsrfToken by adding t
 
     'testing' => true, // Set to false when in production.
 
+    'passphrase' => env('PF_PASSPHRASE'), // SECURITY PASSPHRASE
+
     'currency' => 'ZAR', // ZAR is the only supported currency at this point.
 
     'merchant' => [
