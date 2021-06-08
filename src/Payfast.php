@@ -59,8 +59,6 @@ class Payfast implements PaymentProcessor
 
     protected $passphrase;
 
-    protected $subscriptionType;
-
     protected $frequency;
 
     protected $cycles;
@@ -71,6 +69,7 @@ class Payfast implements PaymentProcessor
         $this->passphrase = config('payfast.passphrase');
         $this->setBuyer(null, null, null);
         $this->setItem(null, null);
+        $this->setIsSubscription(false);
     }
 
     public function getPassphrase()
@@ -115,12 +114,24 @@ class Payfast implements PaymentProcessor
         ];
     }
 
+    /**
+     * set the amount
+     *
+     * @param [] $amount
+     * @return void
+     */
     public function setAmount($amount)
     {
         $money = $this->newMoney($amount);
         $this->amount = number_format( sprintf( '%.2f', $money->convertedAmount()), 2, '.', '');
     }
 
+    /**
+     * get the html payment form
+     *
+     * @param boolean $submitButton
+     * @return string
+     */
     public function paymentForm($submitButton = true)
     {
         $this->button = $submitButton;
@@ -129,6 +140,11 @@ class Payfast implements PaymentProcessor
         return $this->buildForm();
     }
 
+    /**
+     * build payment vars array
+     *
+     * @return array
+     */
     public function paymentVars()
     {
         $paymentVars = array_merge($this->merchant, $this->buyer, [
@@ -151,8 +167,8 @@ class Payfast implements PaymentProcessor
             'payment_method'       => $this->payment_method
         ]);
 
-        if (is_numeric($this->subscriptionType)) {
-            $paymentVars['subscription_type'] = $this->subscriptionType;
+        if ($this->isSubscription) {
+            $paymentVars['subscription_type'] = 1;
             $paymentVars['frequency']         = $this->frequency;
             $paymentVars['cycles']            = $this->cycles;
         }
@@ -160,22 +176,28 @@ class Payfast implements PaymentProcessor
         return $paymentVars;
     }
 
+    /**
+     * get the query string built by key value pairs of `paymentVars`
+     *
+     * @param boolean $includeEmpty
+     * @return string
+     */
     public function buildQueryString($includeEmpty = false)
     {
+        $output = '';
+
         foreach($this->vars as $key => $val )
         {
             if( $key == 'signature' ){
                 continue;
             }
 
-            if ($includeEmpty || $val === 0 || !empty($val)) {
-                $this->output .= $key .'='. urlencode( trim( $val ) ) .'&';
+            if ($includeEmpty || !empty($val)) {
+                $output .= $key .'='. urlencode( trim( $val ) ) .'&';
             }
         }
 
-        $this->output = substr( $this->output, 0, -1 );
-
-        return $this->output;
+        return substr( $output, 0, -1 );
     }
 
     public function buildForm()
@@ -244,8 +266,8 @@ class Payfast implements PaymentProcessor
 
     public function validateHost($request)
     {
-        // alow local testing
-        if (env('APP_ENV') !== 'production') {
+        // allow local testing
+        if (config('app.env') !== 'production') {
             return true;
         }
 
@@ -442,9 +464,9 @@ class Payfast implements PaymentProcessor
         return md5($params);
     }
 
-    public function setSubscriptionType(int $type = 1)
+    public function setIsSubscription(bool $subscribe)
     {
-        $this->subscriptionType = $type;
+        $this->isSubscription = $subscribe;
 
         if (empty($this->frequency)) {
             $this->setFrequency();
