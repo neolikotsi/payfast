@@ -4,7 +4,6 @@ namespace NeoLikotsi;
 
 use Exception;
 use Billow\Utilities\Money;
-use Illuminate\Http\Request;
 use NeoLikotsi\Contracts\PaymentProcessor;
 
 class Payfast implements PaymentProcessor
