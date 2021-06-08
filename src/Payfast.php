@@ -51,14 +51,31 @@ class Payfast implements PaymentProcessor
 
     protected $custom_int5;
 
+    protected $email_confirmation;
+
+    protected $confirmation_address;
+
     protected $payment_method;
 
     protected $passphrase;
+
+    protected $subscriptionType;
+
+    protected $frequency;
+
+    protected $cycles;
 
     public function __construct()
     {
         $this->merchant = config('payfast.merchant');
         $this->passphrase = config('payfast.passphrase');
+        $this->setBuyer(null, null, null);
+        $this->setItem(null, null);
+    }
+
+    public function getPassphrase()
+    {
+        return $this->passphrase;
     }
 
     public function getMerchant()
@@ -80,7 +97,7 @@ class Payfast implements PaymentProcessor
         ];
     }
 
-    public function setPassphrase(string $passphrase)
+    public function setPassphrase(string $passphrase = null)
     {
         $this->passphrase = $passphrase;
     }
@@ -108,45 +125,57 @@ class Payfast implements PaymentProcessor
     {
         $this->button = $submitButton;
         $this->vars = $this->paymentVars();
-        $this->buildQueryString();
-        $this->vars['signature'] = md5($this->output);
+        $this->vars['signature'] = $this->getSignature();
         return $this->buildForm();
     }
 
     public function paymentVars()
     {
-        return array_merge($this->merchant, $this->buyer, [
-            'm_payment_id' => $this->merchantReference,
-            'amount' => $this->amount,
-            'item_name'         => $this->item['item_name'],
-            'item_description'  => $this->item['item_description'],
-            'custom_int1' => $this->custom_int1,
-            'custom_int2' => $this->custom_int2,
-            'custom_int3' => $this->custom_int3,
-            'custom_int4' => $this->custom_int4,
-            'custom_int5' => $this->custom_int5,
-            'custom_str1' => $this->custom_str1,
-            'custom_str2' => $this->custom_str2,
-            'custom_str3' => $this->custom_str3,
-            'custom_str4' => $this->custom_str4,
-            'custom_str5' => $this->custom_str5,
-            'payment_method' => $this->payment_method
+        $paymentVars = array_merge($this->merchant, $this->buyer, [
+            'm_payment_id'         => $this->merchantReference,
+            'amount'               => $this->amount,
+            'item_name'            => $this->item['item_name'],
+            'item_description'     => $this->item['item_description'],
+            'custom_int1'          => $this->custom_int1,
+            'custom_int2'          => $this->custom_int2,
+            'custom_int3'          => $this->custom_int3,
+            'custom_int4'          => $this->custom_int4,
+            'custom_int5'          => $this->custom_int5,
+            'custom_str1'          => $this->custom_str1,
+            'custom_str2'          => $this->custom_str2,
+            'custom_str3'          => $this->custom_str3,
+            'custom_str4'          => $this->custom_str4,
+            'custom_str5'          => $this->custom_str5,
+            'email_confirmation'   => (int)$this->email_confirmation,
+            'confirmation_address' => $this->confirmation_address,
+            'payment_method'       => $this->payment_method
         ]);
+
+        if (is_numeric($this->subscriptionType)) {
+            $paymentVars['subscription_type'] = $this->subscriptionType;
+            $paymentVars['frequency']         = $this->frequency;
+            $paymentVars['cycles']            = $this->cycles;
+        }
+
+        return $paymentVars;
     }
 
-    public function buildQueryString()
+    public function buildQueryString($includeEmpty = false)
     {
         foreach($this->vars as $key => $val )
         {
-            if(!empty($val)) {
+            if( $key == 'signature' ){
+                continue;
+            }
+
+            if ($includeEmpty || $val === 0 || !empty($val)) {
                 $this->output .= $key .'='. urlencode( trim( $val ) ) .'&';
             }
         }
+
         $this->output = substr( $this->output, 0, -1 );
-        if( !empty( $this->passphrase ) )
-        {
-            $this->output .= '&passphrase=' . urlencode( trim( $this->passphrase ) );
-        }
+
+        return $this->output;
     }
 
     public function buildForm()
@@ -155,12 +184,20 @@ class Payfast implements PaymentProcessor
         $htmlForm = '<form id="payfast-pay-form" action="https://'.$this->host.'/eng/process" method="post">';
         foreach($this->vars as $name => $value)
         {
-            $htmlForm .= '<input type="hidden" name="'.$name.'" value="'.$value.'">';
+            // empty fields should not be sent across it breaks certain payment methods
+            if (!empty($value) || $value === 0) {
+                $htmlForm .= '<input type="hidden" name="' . $name . '" value="' . $value . '">';
+            }
         }
         if($this->button)
         {
-            $htmlForm .= '<button type="submit">'.$this->getSubmitButton().'</button>';
+            if (config('payfast.button-view', false)) {
+                $htmlForm .= view(config('payfast.button-view'));
+            } else {
+                $htmlForm .= '<button type="submit">'.$this->getSubmitButton().'</button>';
+            }
         }
+
         return $htmlForm.'</form>';
     }
 
@@ -169,14 +206,17 @@ class Payfast implements PaymentProcessor
         $this->setHeader();
         $this->response_vars = $request->all();
         $this->setAmount($amount);
+
         foreach($this->response_vars as $key => $val)
         {
             $this->vars[$key] = stripslashes($val);
         }
-        $this->buildQueryString();
+        $this->vars['signature'] = $this->getSignature(true);
+
         $this->validSignature($request->get('signature'));
         $this->validateHost($request);
         $this->validateAmount($request->get('amount_gross'));
+        $this->validateCurl();
         $this->status = $request->get('payment_status');
         return $this;
     }
@@ -204,6 +244,11 @@ class Payfast implements PaymentProcessor
 
     public function validateHost($request)
     {
+        // alow local testing
+        if (env('APP_ENV') !== 'production') {
+            return true;
+        }
+
         $hosts = $this->getHosts();
 
         if( !in_array( $request->server('REMOTE_ADDR'), $hosts ) )
@@ -235,6 +280,44 @@ class Payfast implements PaymentProcessor
             return true;
         }else {
             throw new Exception('The gross amount does not match the order amount');
+        }
+    }
+
+    public function validateCurl()
+    {
+        $params = $this->buildQueryString(true);
+
+        // Variable initialization
+        $url = 'https://'. $this->getHost() .'/eng/query/validate';
+
+        // Create default cURL object
+        $ch = curl_init();
+
+        // Set cURL options - Use curl_setopt for greater PHP compatibility
+        // Base settings
+        curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
+        curl_setopt( $ch, CURLOPT_HEADER, false );
+        curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, 2 );
+        curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, 1 );
+
+        // Standard settings
+        curl_setopt( $ch, CURLOPT_URL, $url );
+        curl_setopt( $ch, CURLOPT_POST, true );
+        curl_setopt( $ch, CURLOPT_POSTFIELDS, $params );
+
+        // Execute CURL
+        $response = curl_exec( $ch );
+
+        curl_close( $ch );
+
+        $lines = explode( "\r\n", $response );
+        $verifyResult = trim( $lines[0] );
+
+        if( strcasecmp( $verifyResult, 'VALID' ) == 0 )
+        {
+            return true;
+        } else {
+            throw new Exception('The Data is not valid');
         }
     }
 
@@ -332,8 +415,53 @@ class Payfast implements PaymentProcessor
         $this->custom_int5 = $int;
     }
 
+    public function setEmailConfirmation(bool $send = true)
+    {
+        $this->email_confirmation = $send;
+    }
+
+    public function setConfirmationAddress(string $email)
+    {
+        $this->confirmation_address = $email;
+    }
+
     public function setPaymentMethod($method)
     {
         $this->payment_method = $method;
+    }
+
+    private function getSignature($includeEmpty = false)
+    {
+        $params = $this->buildQueryString($includeEmpty);
+
+        if($this->getPassphrase() != null)
+        {
+            $params .= '&passphrase='.$this->getPassphrase();
+        }
+
+        return md5($params);
+    }
+
+    public function setSubscriptionType(int $type = 1)
+    {
+        $this->subscriptionType = $type;
+
+        if (empty($this->frequency)) {
+            $this->setFrequency();
+        }
+
+        if (empty($this->cycles)) {
+            $this->setCycles();
+        }
+    }
+
+    public function setFrequency(int $frequency = 3)
+    {
+        $this->frequency = $frequency;
+    }
+
+    public function setCycles(int $cycles = 0)
+    {
+        $this->cycles = $cycles;
     }
 }

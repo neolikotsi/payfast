@@ -10,7 +10,7 @@
       "email": "info@bengen.co.za"
     }
   ],
-  "description": "Laravel 5+ package for processing ITN payments through payfast.co.za",
+  "description": "Laravel 5.4+|6+|7+ package for processing ITN payments through payfast.co.za",
   "keywords": ["package", "laravel", "payfast"],
   "license": "MIT",
   "repositories": [
