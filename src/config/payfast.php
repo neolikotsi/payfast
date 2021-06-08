@@ -28,6 +28,6 @@ return
         'w2w.payfast.co.za',
     ],
 
-    'passphrase' => env('PAYFAST_PASSPHRASE'), // set this in your payfast merchant settings
+    'passphrase' => env('PF_PASSPHRASE'), // set this in your payfast merchant settings
 
 ];
