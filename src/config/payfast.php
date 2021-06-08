@@ -13,6 +13,11 @@ return
 */
 [
     'testing'  => true, // Set to false when in production.
+
+    'passphrase' => env('PF_PASSPHRASE'), // set this in your payfast merchant settings
+
+    'currency' => 'ZAR', // ZAR is the only supported currency at this point.
+
     'merchant' => [
         'merchant_id'  => env('PF_MERCHANT_ID', '10000100'),                        // TEST Credentials. Replace with your merchant ID from Payfast.
         'merchant_key' => env('PF_MERCHANT_KEY', '46f0cd694581a'),                  // TEST Credentials. Replace with your merchant key from Payfast.
@@ -27,7 +32,5 @@ return
         'w1w.payfast.co.za',
         'w2w.payfast.co.za',
     ],
-
-    'passphrase' => env('PF_PASSPHRASE'), // set this in your payfast merchant settings
 
 ];
