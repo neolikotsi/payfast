@@ -8,61 +8,70 @@ use NeoLikotsi\Payfast\Test\TestCase;
 
 class ValidateSignatureTest extends TestCase
 {
-    protected $vars;
-    protected $output;
+    protected $payfast;
 
-    /** @test */
-    public function testShouldReturnValidSignature()
+    protected function setUp(): void
     {
-        $payfast = new Payfast();
-        $payfast->setMerchant([
+        parent::setUp();
+
+        $this->payfast = new Payfast;
+
+        $this->payfast->setMerchant([
             'merchant_id' => '10000100',
             'merchant_key' => '46f0cd694581a',
             'return_url' => 'http://your-domain.co.za/success',
             'cancel_url' => 'http://your-domain.co.za/cancel',
             'notify_url' => 'http://your-domain.co.za/itn',
         ]);
-        $payfast->setBuyer('Jane', 'Doe', 'jane@example.com');
-        $payfast->setAmount(100.50);
-        $payfast->setItem('item-title', 'description');
-        $payfast->setMerchantReference(1);
 
+        $this->payfast->setBuyer('Jane', 'Doe', 'jane@example.com');
+        $this->payfast->setItem('item-title', 'description');
+        $this->payfast->setMerchantReference(1);
+    }
+
+
+    /** @test */
+    public function it_returns_valid_onsite_payment_signature()
+    {
         /** generate signature on http://sandbox.payfast.co.za
          *  with POST CHECK tool
         */
         $sandboxGeneratedQueryString = 'merchant_id=10000100&merchant_key=46f0cd694581a&return_url=http%3A%2F%2Fyour-domain.co.za%2Fsuccess&cancel_url=http%3A%2F%2Fyour-domain.co.za%2Fcancel&notify_url=http%3A%2F%2Fyour-domain.co.za%2Fitn&name_first=Jane&name_last=Doe&email_address=jane%40example.com&m_payment_id=1&amount=100.50&item_name=item-title&item_description=description';
         $sandboxGeneratedSignature = '279d5d8fd4164b1f2fc17467afe4602b';
 
-        $packageQueryString = $this->buildQueryString($payfast->paymentVars());
+        $this->payfast->setAmount('100.50');
+        $this->payfast->paymentForm();
+
+        $packageQueryString = $this->payfast->buildQueryString(false);
         $packageSignature = md5($packageQueryString);
 
         $this->assertSame($sandboxGeneratedQueryString, $packageQueryString);
         $this->assertSame($sandboxGeneratedSignature, $packageSignature);
     }
 
-    /**
-     * build query string
-     *
-     * @param array $vars
-     * @return string
-     */
-    public function buildQueryString($vars, $passphrase = '')
+    /** @test */
+    public function it_returns_valid_requiring_billing_signature()
     {
-        $output = '';
+         /** generate signature on http://sandbox.payfast.co.za
+         *  with POST CHECK tool
+        */
+        $sandboxGeneratedQueryString = 'merchant_id=10000100&merchant_key=46f0cd694581a&return_url=http%3A%2F%2Fyour-domain.co.za%2Fsuccess&cancel_url=http%3A%2F%2Fyour-domain.co.za%2Fcancel&notify_url=http%3A%2F%2Fyour-domain.co.za%2Fitn&name_first=Jane&name_last=Doe&email_address=jane%40example.com&m_payment_id=1&amount=100.50&item_name=item-title&item_description=description&subscription_type=1&frequency=3&cycles=12';
+        $sandboxGeneratedSignature = '9b8249c60b255e0644d35cdc80f649d2';
 
-        foreach($vars as $key => $val )
-        {
-            if(!empty($val)) {
-                $output .= $key .'='. urlencode( trim( $val ) ) .'&';
-            }
-        }
-        $output = substr( $output, 0, -1 );
+        $this->payfast->setIsSubscription(true);
+        $this->payfast->setFrequency(3);
+        $this->payfast->setCycles(12);
+        $this->payfast->setAmount(100.50);
 
-        if( !empty( $passphrase ) )
-        {
-            $output .= '&passphrase=' . urlencode( trim( $passphrase ) );
-        }
+        $paymentForm = $this->payfast->paymentForm();
 
-        return $output;
+        $packageQueryString = $this->payfast->buildQueryString(false);
+        $packageSignature = md5($packageQueryString);
+
+        $this->assertSame($sandboxGeneratedQueryString, $packageQueryString);
+        $this->assertSame($sandboxGeneratedSignature, $packageSignature);
+
+        $this->assertStringContainsStringIgnoringCase('<input type="hidden" name="subscription_type" value="1">', $paymentForm);
     }
+
 }
