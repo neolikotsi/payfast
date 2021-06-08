@@ -94,10 +94,10 @@ Class PaymentController extends Controller
 
         // Optionally send confirmation email to seller
         $payfast->setEmailConfirmation();
-        $payfast->setConfirmationAddress(env('PAYFAST_CONFIRMATION_EMAIL'));
+        $payfast->setConfirmationAddress(config('payfast.PF_CONFIRMATION_EMAIL'));
 
         // Optionally make this a subscription
-        $payfast->setSubscriptionType();    // will default to 1
+        $payfast->setIsSubscription();    // will default to 1
         $payfast->setFrequency();           // will default to 3 = monthly if not set
         $payfast->setCycles();              // will default to 0 = indefinite if not set
 
