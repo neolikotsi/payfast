@@ -19,12 +19,13 @@ Add the PayfastServiceProvider to your providers array in config/app.php
     'NeoLikotsi\PayfastServiceProvider'
 ];
 ```
-### Config
+## Config
 publish default configuration file.
+```bash
+php artisan vendor:publish
+```
 
-    php artisan vendor:publish
-
-IMPORTANT: You will need to edit App\Http\Middleware\VerifyCsrfToken by adding the route, which handles the ITN response to the $excepted array. Validation is done via the ITN response.
+IMPORTANT: You will need to edit `App\Http\Middleware\VerifyCsrfToken` by adding the route, which handles the ITN response to the $excepted array. Validation is done via the ITN response.
 
 
 
@@ -59,7 +60,7 @@ IMPORTANT: You will need to edit App\Http\Middleware\VerifyCsrfToken by adding t
 ];
 
 ```
-### Usage
+## Usage
 
 Creating a payment returns an html form ready to POST to payfast. When the customer submits the form they will be redirected to payfast to complete payment. Upon successful payment the customer will be returned to the specified 'return_url' and in the case of a cancellation they will be returned to the specified 'cancel_url'
 
@@ -108,7 +109,7 @@ Class PaymentController extends Controller
 }
 ```
 
-### ITN Responses
+## ITN Responses
 
 Payfast will send a POST request to notify the merchant (You) with a status on the transaction. This will allow you to update your order status based on the appropriate status sent back from Payfast. You are not forced to use the key 'm_payment_id' to store your merchant reference but this is the the key that will be returned back to you from Payfast for further verification.
 
@@ -184,7 +185,7 @@ Variables Returned by Payfast
 
 ```
 
-### Amounts
+## Amounts
 
 The cart total may be set in 2 ways, as a string value:
 
@@ -204,7 +205,7 @@ $payfast->setAmount($cartTotal);
 
 ```
 
-### Payment Form
+## Payment Form
 
 By default the paymentForm() method will return a compiled HTML form including a submit button. There are 3 configurations available for the submit button.
 
@@ -217,3 +218,11 @@ $payfast->paymentForm(false) // No submit button, handy for submitting the form 
 $payfast->paymentForm('Confirm and Pay') // Override Default Submit Button Text.
 
 ```
+
+## Testing
+```bash
+composer test
+```
+
+## License
+The MIT License (MIT). Please see [License File](LICENSE.md) for more information.

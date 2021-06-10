@@ -1,7 +1,6 @@
 {
   "name": "neolikotsi/payfast",
-  "authors": [
-    {
+  "authors": [{
       "name": "Warren Hansen",
       "email": "warren@billow.co.za"
     },
@@ -13,12 +12,10 @@
   "description": "Laravel 5.4+|6+|7+ package for processing ITN payments through payfast.co.za",
   "keywords": ["package", "laravel", "payfast"],
   "license": "MIT",
-  "repositories": [
-    {
-        "type": "vcs",
-        "url": "https://github.com/neolikotsi/show-me-the-money"
-    }
-],
+  "repositories": [{
+    "type": "vcs",
+    "url": "https://github.com/neolikotsi/show-me-the-money"
+  }],
   "require": {
     "illuminate/support": "^5.4|^6.0|^7.0",
     "illuminate/http": "^5.4|^6.0|^7.0",
@@ -39,11 +36,19 @@
     "phpunit/phpunit": "^8.5|^9.1",
     "orchestra/testbench": "^3.0|^4.6|^5.0|^6.0"
   },
+  "scripts": {
+    "test": "vendor/bin/phpunit"
+  },
   "extra": {
     "laravel": {
       "providers": [
         "NeoLikotsi\\PayfastServiceProvider"
       ]
     }
-  }
+  },
+  "config": {
+    "sort-packages": true
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
 }
