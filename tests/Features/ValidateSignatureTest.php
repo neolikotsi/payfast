@@ -61,7 +61,7 @@ class ValidateSignatureTest extends TestCase
         $this->payfast->setIsSubscription(true);
         $this->payfast->setFrequency(3);
         $this->payfast->setCycles(12);
-        $this->payfast->setAmount(100.50);
+        $this->payfast->setAmount(10050);
 
         $paymentForm = $this->payfast->paymentForm();
 
